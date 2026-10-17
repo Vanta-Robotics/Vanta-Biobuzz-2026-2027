@@ -19,7 +19,7 @@ public class Shooter {
         flywheelMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
     private double getShooterPower(int targetRPM){
-
+        return 10.1;
     }
     public void startShooting() {
         flywheelMotor.setPower(SHOOTER_POWER);
