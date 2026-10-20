@@ -1,28 +1,37 @@
 package org.firstinspires.ftc.teamcode.OpModes;
-
-import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.gamepad1;
-import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.hardwareMap;
-
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
-// there is a way to input drivetrain using Pedro into teleop
-public class TeleOp {
+
+@TeleOp(name = "TeleOp", group = "TeleOp")
+// extends opmode wasn't there last time
+public class teleOp extends OpMode {
     private DcMotorEx frontLeft;
     private DcMotorEx frontRight;
     private DcMotorEx backLeft;
     private DcMotorEx backRight;
 
+    private Intake intakeA;
+    private ShooterStopper shooterStopper;
 
+    @Override
     public void init() {
-        // Map code variables to the names in the Driver Station Robot Configuration
-        frontLeft  = hardwareMap.get(DcMotorEx.class, "frontLeft");
-        frontRight = hardwareMap.get(DcMotorEx.class, "frontRight");
-        backLeft   = hardwareMap.get(DcMotorEx.class, "backLeft");
-        backRight  = hardwareMap.get(DcMotorEx.class, "backRight");
 
-        // Example directions only: verify these on your actual robot.
+        intakeA = new Intake(hardwareMap, "in1"); //check name
+        shooterStopper = new ShooterStopper(hardwareMap,
+                "stopperA", 0, 0.5); //adjust name and value
+        //first value is close position second is open position of servo
+
+        // Map code variables to the names in the Driver Station Robot Configuration
+        frontLeft  = hardwareMap.get(DcMotorEx.class, "fL");
+        frontRight = hardwareMap.get(DcMotorEx.class, "fR");
+        backLeft   = hardwareMap.get(DcMotorEx.class, "bL");
+        backRight  = hardwareMap.get(DcMotorEx.class, "bR");
+
+
         frontLeft.setDirection(DcMotorSimple.Direction.REVERSE);
         backLeft.setDirection(DcMotorSimple.Direction.REVERSE);
         frontRight.setDirection(DcMotorSimple.Direction.FORWARD);
@@ -38,11 +47,22 @@ public class TeleOp {
         backLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         backRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
     }
-
+    @Override
     public void loop() {
+
+        // a runs intake forward, b reverses it
+        intakeA.update(gamepad1.a, gamepad1.b);
+
+        shooterStopper.update(gamepad1.x, gamepad1.y);
+
         double forward = -gamepad1.left_stick_y;
         double strafe  =  gamepad1.left_stick_x;
         double turn    =  gamepad1.right_stick_x;
+
+        // this makes up for stick drift (maybe) change values if necessary
+        if (Math.abs(forward) < 0.08) forward = 0;
+        if (Math.abs(strafe) < 0.08) strafe = 0;
+        if (Math.abs(turn) < 0.08) turn = 0;
 
         double fl = forward + strafe + turn;
         double fr = forward - strafe - turn;
@@ -59,6 +79,8 @@ public class TeleOp {
         frontRight.setPower(fr / max);
         backLeft.setPower(bl / max);
         backRight.setPower(br / max);
+
+
 
     }
 }
