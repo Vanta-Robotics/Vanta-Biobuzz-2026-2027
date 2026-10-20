@@ -1,10 +1,14 @@
 package org.firstinspires.ftc.teamcode.OpModes;
 
+import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.IMU;
+
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
 @TeleOp(name = "Main TeleOp", group = "TeleOp")
 public class MainTeleOp extends OpMode {
@@ -15,6 +19,8 @@ public class MainTeleOp extends OpMode {
     private Shooter pollenShooter;
     private Intake intake;
     private ShooterStopper shooterStopper;
+    private IMU imu;
+
 
     @Override
     public void init() {
@@ -22,10 +28,17 @@ public class MainTeleOp extends OpMode {
         frontRight = hardwareMap.get(DcMotorEx.class, "fR");
         backLeft = hardwareMap.get(DcMotorEx.class, "bL");
         backRight = hardwareMap.get(DcMotorEx.class, "bR");
+        // Full trigger requests 50% of the configured motor's achievable speed.
         pollenShooter = new Shooter(hardwareMap, "sh1", 0.5);
         intake = new Intake(hardwareMap, "in1");
         // Check these positions against the stopper linkage before driving.
         shooterStopper = new ShooterStopper(hardwareMap, "stopperA", 0, 0.5);
+
+        // The hub sits on the right side, with its logo facing right and USB ports up.
+        imu = hardwareMap.get(IMU.class, "imu");
+        imu.initialize(new IMU.Parameters(new RevHubOrientationOnRobot(
+                RevHubOrientationOnRobot.LogoFacingDirection.RIGHT,
+                RevHubOrientationOnRobot.UsbFacingDirection.UP)));
 
         // Keep the directions from the current robot code.
         frontLeft.setDirection(DcMotorSimple.Direction.FORWARD);
@@ -39,8 +52,15 @@ public class MainTeleOp extends OpMode {
             motor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
             motor.setPower(0);
         }
-        telemetry.addData("Drive", "Left stick moves, right stick turns");
+        telemetry.addData("Drive", "Left stick moves on the field, right stick turns");
+        telemetry.addData("Heading", "Face field forward before Start; Back resets heading");
         telemetry.addData("Mechanisms", "A/B intake, X/Y stopper, right trigger shooter");
+    }
+
+    @Override
+    public void start() {
+        // The direction we're facing at Start becomes field forward.
+        imu.resetYaw();
     }
 
     @Override
@@ -48,6 +68,11 @@ public class MainTeleOp extends OpMode {
         intake.update(gamepad1.a, gamepad1.b);
         shooterStopper.update(gamepad1.x, gamepad1.y);
         pollenShooter.update(gamepad1.right_trigger);
+        telemetry.addData("Shooter target (ticks/s)", "%.0f",
+                pollenShooter.getTargetVelocityTicksPerSecond());
+        telemetry.addData("Shooter actual (ticks/s)", "%.0f",
+                pollenShooter.getVelocityTicksPerSecond());
+        telemetry.addData("Shooter PID power", "%.2f", pollenShooter.getOutputPower());
 
         double forward = -gamepad1.left_stick_y;
         double strafe = gamepad1.left_stick_x;
@@ -56,10 +81,17 @@ public class MainTeleOp extends OpMode {
         if (Math.abs(strafe) < 0.08) strafe = 0;
         if (Math.abs(turn) < 0.08) turn = 0;
 
-        double fl = forward + strafe + turn;
-        double fr = forward - strafe - turn;
-        double bl = forward - strafe + turn;
-        double br = forward + strafe - turn;
+        if (gamepad1.back) imu.resetYaw();
+        double heading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
+        // Rotate the field's forward/right commands into the robot's forward/right.
+        double robotForward = forward * Math.cos(heading) - strafe * Math.sin(heading);
+        double robotStrafe = strafe * Math.cos(heading) + forward * Math.sin(heading);
+        telemetry.addData("Heading (degrees)", "%.1f", Math.toDegrees(heading));
+
+        double fl = robotForward + robotStrafe + turn;
+        double fr = robotForward - robotStrafe - turn;
+        double bl = robotForward - robotStrafe + turn;
+        double br = robotForward + robotStrafe - turn;
 
         // Scale the powers together so diagonal driving keeps its direction.
         double max = Math.max(1.0, Math.max(
