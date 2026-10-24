@@ -24,9 +24,9 @@ public class MainTeleOp extends OpMode {
 
     @Override
     public void init() {
-        frontLeft = hardwareMap.get(DcMotorEx.class, "fL");
-        frontRight = hardwareMap.get(DcMotorEx.class, "fR");
         backLeft = hardwareMap.get(DcMotorEx.class, "bL");
+        frontRight = hardwareMap.get(DcMotorEx.class, "fR");
+        frontLeft = hardwareMap.get(DcMotorEx.class, "fL");
         backRight = hardwareMap.get(DcMotorEx.class, "bR");
         // Full trigger requests 50% of the configured motor's achievable speed.
         pollenShooter = new Shooter(hardwareMap, "sh1", 0.5);
@@ -41,10 +41,10 @@ public class MainTeleOp extends OpMode {
                 RevHubOrientationOnRobot.UsbFacingDirection.UP)));
 
         // Keep the directions from the current robot code.
-        frontLeft.setDirection(DcMotorSimple.Direction.FORWARD);
-        backLeft.setDirection(DcMotorSimple.Direction.FORWARD);
-        frontRight.setDirection(DcMotorSimple.Direction.REVERSE);
-        backRight.setDirection(DcMotorSimple.Direction.REVERSE);
+        frontRight.setDirection(DcMotorSimple.Direction.FORWARD);
+        backRight.setDirection(DcMotorSimple.Direction.FORWARD);
+        frontLeft.setDirection(DcMotorSimple.Direction.REVERSE);
+        backLeft.setDirection(DcMotorSimple.Direction.REVERSE);
 
         DcMotorEx[] driveMotors = {frontLeft, frontRight, backLeft, backRight};
         for (DcMotorEx motor : driveMotors) {
@@ -84,24 +84,41 @@ public class MainTeleOp extends OpMode {
         if (gamepad1.back) imu.resetYaw();
         double heading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
         // Rotate the field's forward/right commands into the robot's forward/right.
-        double robotForward = forward * Math.cos(heading) - strafe * Math.sin(heading);
-        double robotStrafe = strafe * Math.cos(heading) + forward * Math.sin(heading);
+        //double robotForward = forward * Math.cos(heading) - strafe * Math.sin(heading);
+        //double robotStrafe = strafe * Math.cos(heading) + forward * Math.sin(heading);
+        double robotForward = forward;
+        double robotStrafe = strafe;
         telemetry.addData("Heading (degrees)", "%.1f", Math.toDegrees(heading));
 
-        double fl = robotForward + robotStrafe + turn;
-        double fr = robotForward - robotStrafe - turn;
-        double bl = robotForward - robotStrafe + turn;
-        double br = robotForward + robotStrafe - turn;
+        double den = Math.max(Math.abs(robotForward) + Math.abs(robotStrafe) + Math.abs(turn), 1.0);
+
+        double fl = (robotForward + robotStrafe + turn)/den;
+        double fr = (robotForward - robotStrafe - turn)/den;
+        double bl = (robotForward - robotStrafe + turn)/den;
+        double br = (robotForward + robotStrafe - turn)/den;
 
         // Scale the powers together so diagonal driving keeps its direction.
         double max = Math.max(1.0, Math.max(
                 Math.max(Math.abs(fl), Math.abs(fr)),
                 Math.max(Math.abs(bl), Math.abs(br))
         ));
-        frontLeft.setPower(fl / max);
-        frontRight.setPower(fr / max);
+
+        frontLeft.setPower((fl / max));
+        frontRight.setPower((fr / max));
         backLeft.setPower(bl / max);
-        backRight.setPower(br / max);
+        backRight.setPower((br / max));
+
+         /*
+        frontLeft.setPower(gamepad1.dpad_up ? 0.2 : 0);
+        frontRight.setPower(gamepad1.dpad_right ? 0.2 : 0);
+        backLeft.setPower(gamepad1.dpad_left ? 0.2 : 0);
+        backRight.setPower(gamepad1.dpad_down ? 0.2 : 0);
+        */
+        telemetry.addData("front Left", frontLeft.getPower());
+        telemetry.addData("back Left", backLeft.getPower());
+        telemetry.addData("front right", frontRight.getPower());
+        telemetry.addData("back right", backRight.getPower());
+
     }
 
     @Override
@@ -112,5 +129,6 @@ public class MainTeleOp extends OpMode {
         if (backRight != null) backRight.setPower(0);
         if (pollenShooter != null) pollenShooter.stop();
         if (intake != null) intake.stop();
+
     }
 }
