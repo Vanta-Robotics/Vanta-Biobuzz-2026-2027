@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.OpModes;
 
+import com.acmerobotics.dashboard.FtcDashboard;
+import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -23,6 +25,7 @@ public class MainTeleOp extends OpMode {
 
     @Override
     public void init() {
+        telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
         backLeft = hardwareMap.get(DcMotorEx.class, "bL");
         frontRight = hardwareMap.get(DcMotorEx.class, "fR");
         frontLeft = hardwareMap.get(DcMotorEx.class, "fL");
@@ -67,11 +70,11 @@ public class MainTeleOp extends OpMode {
         intake.update(gamepad1.a, gamepad1.b, gamepad1.left_bumper);
         pollenShooter.updateBlocker(gamepad1.right_bumper);
         pollenShooter.update(gamepad1.right_trigger);
-        telemetry.addData("Shooter target (ticks/s)", "%.0f",
-                pollenShooter.getTargetVelocityTicksPerSecond());
-        telemetry.addData("Shooter actual (ticks/s)", "%.0f",
-                pollenShooter.getVelocityTicksPerSecond());
-        telemetry.addData("Shooter PID power", "%.2f", pollenShooter.getOutputPower());
+        telemetry.addData("Shooter target (RPM)",
+                pollenShooter.getTargetRpm());
+        telemetry.addData("Shooter actual (RPM)",
+                pollenShooter.getActualRpm());
+        telemetry.addData("Shooter PID power", pollenShooter.getOutputPower());
 
         double forward = -gamepad1.left_stick_y;
         double strafe = gamepad1.left_stick_x;
@@ -117,6 +120,7 @@ public class MainTeleOp extends OpMode {
         telemetry.addData("back Left", backLeft.getPower());
         telemetry.addData("front right", frontRight.getPower());
         telemetry.addData("back right", backRight.getPower());
+        telemetry.update();
 
     }
 

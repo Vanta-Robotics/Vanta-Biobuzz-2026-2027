@@ -1,16 +1,18 @@
 package org.firstinspires.ftc.teamcode.OpModes;
 
+import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
+@Config
 public final class Shooter {
     // Starting gains, not robot-tuned values. Error is a fraction of full motor speed.
-    private static final double KP = 0.2;
-    private static final double KI = 0.0;
-    private static final double KD = 0.0;
-    private static final double KF = 1.0;
+    public static volatile double KP = 0.2;
+    public static volatile double KI = 0.0;
+    public static volatile double KD = 0.0;
+    public static volatile double KF = 1.0;
     private static final long DOUBLE_CLICK_NANOS = 350_000_000L;
 
     private final DcMotorEx motor;
@@ -105,12 +107,12 @@ public final class Shooter {
         lastUpdateNanos = now;
     }
 
-    public double getTargetVelocityTicksPerSecond() {
-        return targetVelocityTicksPerSecond;
+    public double getTargetRpm() {
+        return targetVelocityTicksPerSecond * 60.0 / motor.getMotorType().getTicksPerRev();
     }
 
-    public double getVelocityTicksPerSecond() {
-        return motor.getVelocity();
+    public double getActualRpm() {
+        return motor.getVelocity() * 60.0 / motor.getMotorType().getTicksPerRev();
     }
 
     public double getOutputPower() {
