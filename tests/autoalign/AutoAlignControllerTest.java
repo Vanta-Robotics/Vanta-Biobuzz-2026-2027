@@ -156,6 +156,28 @@ public final class AutoAlignControllerTest {
         close(pitched.y, Math.sqrt(2), "Upward camera pitch forward projection");
         close(pitched.z, Math.sqrt(2), "Upward camera pitch height projection");
 
+        // Independent synthetic fixture using the measured camera mount. The opening
+        // is at aiming-frame (0, 2, 1) m, observed through the 28.538216-degree camera.
+        // Wheel centers below are deliberately TEST reference origins, not real exits.
+        Observation cadTarget = new Observation(30, 2,
+                new Vector(0.0031791, 0.2349753799319838, 1.9721163145904197), 0, 0, 0);
+        Settings cadLeftReference = new Settings(true, AutoAlignConfig.CAMERA_POSITION,
+                new Vector(-0.065825795, 0.07243985, 0.30818390),
+                AutoAlignConfig.CAMERA_ROLL_CLOCKWISE_DEG, AutoAlignConfig.CAMERA_PITCH_UP_DEG,
+                AutoAlignConfig.CAMERA_YAW_RIGHT_DEG, 0, new TagCalibration[] {tag(30)});
+        Settings cadRightReference = new Settings(true, AutoAlignConfig.CAMERA_POSITION,
+                new Vector(0.069370205, 0.06511985, 0.30818390),
+                AutoAlignConfig.CAMERA_ROLL_CLOCKWISE_DEG, AutoAlignConfig.CAMERA_PITCH_UP_DEG,
+                AutoAlignConfig.CAMERA_YAW_RIGHT_DEG, 0, new TagCalibration[] {tag(30)});
+        Output cadLeft = acquire(new AutoAlignController(cadLeftReference), cadTarget);
+        Output cadRight = acquire(new AutoAlignController(cadRightReference), cadTarget);
+        close(cadLeft.errorDeg, 1.9558793675246273, "CAD pitch and left reference parallax");
+        close(cadRight.errorDeg, -2.0533149261830794, "CAD pitch and right reference parallax");
+        check(cadLeft.turn > 0 && cadRight.turn < 0,
+                "Same camera observation needs opposite corrections for separate shooter origins");
+        check(!AutoAlignConfig.SHOOTER_EXIT_POSITION.finite(),
+                "CAD wheel centers must not silently become calibrated ball release points");
+
         boolean duplicateRejected = false;
         try { settings(tag(30), tag(30)); }
         catch (IllegalArgumentException expected) { duplicateRejected = true; }

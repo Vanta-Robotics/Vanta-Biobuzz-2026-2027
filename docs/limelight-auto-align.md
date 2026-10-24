@@ -36,13 +36,17 @@ It does not drive to an out-of-view goal or infer alliance from robot location.
 The initial configuration intentionally runs the test mode as **vision only**:
 
 - `CAMERA_MOUNT_VERIFIED = false`
-- Camera and shooter measurements are `Double.NaN`.
+- Camera mounting values are populated from the team's CAD; its front aperture
+  is a provisional optical-origin reference. Shooter release coordinates remain
+  `Double.NaN` because the CAD has two shooting lanes and no identified release datum.
 - There are no tag-to-opening calibration entries yet.
 - `TEST_DRIVE_VERIFIED = false`
 
-The team has confirmed the shooter fires forward. Photos help check mounting,
-but final geometry needs measurements. Calibrated tags can be added one at a
-time; an uncalibrated ID is never used to steer.
+The team confirmed that shots travel toward the Limelight and the physical mount
+matches the CAD. See [the measured geometry and diagram](limelight-cad-measurements.md)
+for the 28.538-degree mounting pitch, camera position, two shooter centerlines,
+and remaining calibration. Calibrated tags can be added one at a time; an
+uncalibrated ID is never used to steer.
 
 All settings for this feature are in
 `TeamCode/src/main/java/org/firstinspires/ftc/teamcode/vision/autoalign/AutoAlignConfig.java`.
@@ -78,8 +82,9 @@ This feature uses target-relative poses, not botpose or a static field map.
 
 ## 2. Measure the geometry
 
-Use meters and degrees. Choose one fixed robot origin (for example the chassis
-center projected onto the floor) for both positions:
+Use meters and degrees. The CAD measurements now establish one fixed origin: the
+midpoint of the four drive wheels projected onto the nominal floor. Forward for
+the aiming geometry is toward the shooter/camera; retain this frame for both positions:
 
 - `CAMERA_POSITION`: camera lens coordinates in **(right, forward, up)**.
 - `SHOOTER_EXIT_POSITION`: the ball exit center in the same axes and origin.

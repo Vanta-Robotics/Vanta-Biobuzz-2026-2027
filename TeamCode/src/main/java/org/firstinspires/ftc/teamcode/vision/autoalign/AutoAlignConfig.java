@@ -8,14 +8,21 @@ public final class AutoAlignConfig {
     public static final String LIMELIGHT_NAME = "limelight";
     public static final int PIPELINE = 0;
 
-    // Do not invent mounting values. Set measurements, then verify on the robot.
+    // CAD mounting geometry: docs/limelight-cad-measurements.md (2026-10-24).
+    // Team confirmed the physical mount matches CAD and shots travel toward the Limelight.
+    // The exported camera is its front enclosure only. This position is the aperture
+    // center, a provisional optical-origin reference; validate with live target poses.
     public static final boolean CAMERA_MOUNT_VERIFIED = false;
-    // Robot axes used HERE: right, forward, up. Origin is a chosen fixed robot point.
-    public static final Vector CAMERA_POSITION = new Vector(Double.NaN, Double.NaN, Double.NaN);
+    // Aiming axes HERE: right, forward toward the shooter/camera (+CAD X), up.
+    // Origin: midpoint of the four wheel centers, projected onto the nominal floor.
+    // These aiming axes do not redefine the wheel branch's driving/IMU axes.
+    public static final Vector CAMERA_POSITION = new Vector(-0.0031791, 0.1552402, 0.2642572);
+    // CAD has two launch lanes, 135.196 mm apart. A wheel center is NOT a ball
+    // release point; select the active lane and establish its exit before filling this.
     public static final Vector SHOOTER_EXIT_POSITION = new Vector(Double.NaN, Double.NaN, Double.NaN);
-    public static final double CAMERA_ROLL_CLOCKWISE_DEG = Double.NaN;
-    public static final double CAMERA_PITCH_UP_DEG = Double.NaN;
-    public static final double CAMERA_YAW_RIGHT_DEG = Double.NaN;
+    public static final double CAMERA_ROLL_CLOCKWISE_DEG = 0;
+    public static final double CAMERA_PITCH_UP_DEG = 28.538216;
+    public static final double CAMERA_YAW_RIGHT_DEG = 0;
     public static final double SHOOTER_YAW_RIGHT_DEG = 0; // Team confirmed forward-firing shooter.
 
     // Keep disabled until the wheel branch has verified corners and rotation direction.

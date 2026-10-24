@@ -1,0 +1,120 @@
+{
+  "source_file": "Full robot cad.3mf",
+  "source_sha256": "d1f80ad5445694c93d83c654a35ee5196145912e20128ff88367f7b9ef6308d3",
+  "source_unit": "meter",
+  "definition_count": 321,
+  "mesh_instances": 1313,
+  "aiming_axes_in_cad": {
+    "right": [
+      0,
+      -1,
+      0
+    ],
+    "forward": [
+      1,
+      0,
+      0
+    ],
+    "up": [
+      0,
+      0,
+      1
+    ]
+  },
+  "origin_cad_m": [
+    -0.08461795,
+    -0.1555838,
+    -0.0980929
+  ],
+  "floor_assumption": "mean drive-wheel axle height minus nominal 0.052 m radius; no tire compression",
+  "camera": {
+    "object_id": "8",
+    "name": "EnclosureTopThin_RC_REAL:1__Solid1",
+    "local_to_cad_matrix": [
+      [
+        2.59962e-08,
+        -0.878499,
+        0.477745,
+        0.082745
+      ],
+      [
+        -1.0,
+        -3.45987e-08,
+        -9.20732e-09,
+        -0.116352
+      ],
+      [
+        2.4618e-08,
+        -0.477745,
+        -0.878499,
+        0.139686
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    ],
+    "aperture_local_m": [
+      0.0360527,
+      -0.002,
+      -0.0290527
+    ],
+    "aperture_cad_m": [
+      0.0706222167757332,
+      -0.1524046996633051,
+      0.16616425878484536
+    ],
+    "aperture_aiming_m": [
+      -0.0031791003366948845,
+      0.1552401667757332,
+      0.26425715878484535
+    ],
+    "outward_axis_cad": [
+      0.8784986582526674,
+      3.459868654066375e-08,
+      0.47774481415109243
+    ],
+    "roll_clockwise_deg": 0,
+    "pitch_up_deg": 28.53821557156678,
+    "yaw_right_deg": 0,
+    "status": "front-aperture reference only; optical pose origin not established"
+  },
+  "shooter_lane_references": [
+    {
+      "name": "right",
+      "reference": "wheel center, NOT ball release point",
+      "cad_m": [
+        -0.019498100415939072,
+        -0.224954005,
+        0.21009099960611213
+      ],
+      "aiming_m": [
+        0.06937020500000002,
+        0.06511984958406092,
+        0.30818389960611214
+      ]
+    },
+    {
+      "name": "left",
+      "reference": "wheel center, NOT ball release point",
+      "cad_m": [
+        -0.01217810041593907,
+        -0.089758005,
+        0.21009099960611213
+      ],
+      "aiming_m": [
+        -0.06582579499999999,
+        0.07243984958406093,
+        0.30818389960611214
+      ]
+    }
+  ],
+  "pending": [
+    "active shooter lane and actual ball release point",
+    "live camera optical-origin check",
+    "field tag-to-opening calibration",
+    "wheel branch verification and MainTeleOp integration"
+  ]
+}
