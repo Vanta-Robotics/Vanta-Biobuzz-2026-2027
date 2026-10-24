@@ -28,7 +28,7 @@ public class MainTeleOp extends OpMode {
         frontLeft = hardwareMap.get(DcMotorEx.class, "fL");
         backRight = hardwareMap.get(DcMotorEx.class, "bR");
         // Full trigger requests 50% of the configured motor's achievable speed.
-        pollenShooter = new Shooter(hardwareMap, "pollenShooter","nectarShooter", "blocker",0.5);
+        pollenShooter = new Shooter(hardwareMap, "pollenShooter","nectarShooter", "blocker",1);
         intake = new Intake(hardwareMap,"pollenIntake", "nectarIntake", "rampServo");
         // Check these positions against the stopper linkage before driving.
 

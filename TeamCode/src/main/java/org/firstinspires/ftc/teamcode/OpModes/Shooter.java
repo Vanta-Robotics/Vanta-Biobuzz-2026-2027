@@ -13,6 +13,7 @@ public final class Shooter {
     public static volatile double KI = 0.0;
     public static volatile double KD = 0.0;
     public static volatile double KF = 1.0;
+    public static volatile double targetRPM = 3000;
     private static final long DOUBLE_CLICK_NANOS = 350_000_000L;
     private final double openPosition = 0;
     private final double closedPosition = .5;
@@ -28,6 +29,8 @@ public final class Shooter {
     private boolean blockerLatchedOpen;
     private boolean previousBlockerButton;
     private long lastBlockerPressNanos;
+    private static double pollenShooterRPMtoTicks;
+
 
     public Shooter(HardwareMap hardwareMap, String pollenMotor, String nectarMotor, String blockerName, double maxSpeedFraction
                   ) {
@@ -37,6 +40,7 @@ public final class Shooter {
         pollenShooter = hardwareMap.get(DcMotorEx.class, pollenMotor);
         // Speeds come from the motor model selected in the robot configuration.
         fullSpeed = pollenShooter.getMotorType().getAchieveableMaxTicksPerSecond();
+        pollenShooterRPMtoTicks = pollenShooter.getMotorType().getTicksPerRev();
         maxVelocityTicksPerSecond = fullSpeed * maxSpeedFraction;
         if (!Double.isFinite(maxVelocityTicksPerSecond) || maxVelocityTicksPerSecond <= 0) {
             throw new IllegalArgumentException("Shooter needs a motor configuration with a valid maximum speed");
@@ -66,18 +70,10 @@ public final class Shooter {
         blocker.setPosition(button || blockerLatchedOpen ? openPosition : closedPosition);
     }
 
-    public void update(double trigger) {
-        if (!Double.isFinite(trigger) || trigger <= 0) {
-            stop();
-            return;
-        }
-        double demand = Math.max(0, Math.min(1, trigger));
-        targetVelocityTicksPerSecond = demand * maxVelocityTicksPerSecond;
+    public double getPower() {
+        targetVelocityTicksPerSecond = targetRPM * pollenShooterRPMtoTicks;
         double speed = pollenShooter.getVelocity() / fullSpeed;
-        if (!Double.isFinite(speed)) {
-            stop();
-            return;
-        }
+
         double target = targetVelocityTicksPerSecond / fullSpeed;
         double error = target - speed;
 
@@ -102,6 +98,8 @@ public final class Shooter {
         pollenShooter.setPower(outputPower);
         previousSpeed = speed;
         lastUpdateNanos = now;
+
+        return outputPower;
     }
 
     public double getTargetRpm() {
