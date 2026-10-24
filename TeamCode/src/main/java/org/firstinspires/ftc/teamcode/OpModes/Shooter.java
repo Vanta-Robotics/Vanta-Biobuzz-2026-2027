@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.OpModes;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.Servo;
 
 public final class Shooter {
     // Starting gains, not robot-tuned values. Error is a fraction of full motor speed.
@@ -12,6 +13,9 @@ public final class Shooter {
     private static final double KF = 1.0;
 
     private final DcMotorEx motor;
+    private final Servo gate;
+    private final double closedPosition;
+    private final double openPosition;
     private final double fullSpeed;
     private final double maxVelocityTicksPerSecond;
     private double targetVelocityTicksPerSecond;
@@ -20,7 +24,8 @@ public final class Shooter {
     private double previousSpeed;
     private long lastUpdateNanos;
 
-    public Shooter(HardwareMap hardwareMap, String motorName, double maxSpeedFraction) {
+    public Shooter(HardwareMap hardwareMap, String motorName, double maxSpeedFraction,
+                   String servoName, double closedPosition, double openPosition) {
         if (!Double.isFinite(maxSpeedFraction) || maxSpeedFraction <= 0 || maxSpeedFraction > 1) {
             throw new IllegalArgumentException("Shooter max speed fraction must be greater than 0 and at most 1");
         }
@@ -35,6 +40,19 @@ public final class Shooter {
         // Read the encoder, but let our PID control setPower instead of the hub's PID.
         motor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         stop();
+
+        gate = hardwareMap.get(Servo.class, servoName);
+        this.closedPosition = closedPosition;
+        this.openPosition = openPosition;
+        gate.setPosition(closedPosition);
+    }
+
+    public void updateGate(boolean openButton, boolean closeButton) {
+        if (openButton) {
+            gate.setPosition(openPosition);
+        } else if (closeButton) {
+            gate.setPosition(closedPosition);
+        }
     }
 
     public void update(double trigger) {

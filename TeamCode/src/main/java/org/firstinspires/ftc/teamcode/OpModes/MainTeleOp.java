@@ -18,7 +18,6 @@ public class MainTeleOp extends OpMode {
     private DcMotorEx backRight;
     private Shooter pollenShooter;
     private Intake intake;
-    private ShooterStopper shooterStopper;
     private IMU imu;
 
 
@@ -29,10 +28,9 @@ public class MainTeleOp extends OpMode {
         frontLeft = hardwareMap.get(DcMotorEx.class, "fL");
         backRight = hardwareMap.get(DcMotorEx.class, "bR");
         // Full trigger requests 50% of the configured motor's achievable speed.
-        pollenShooter = new Shooter(hardwareMap, "sh1", 0.5);
-        intake = new Intake(hardwareMap, "in1");
-        // Check these positions against the stopper linkage before driving.
-        shooterStopper = new ShooterStopper(hardwareMap, "stopperA", 0, 0.5);
+        // Gate positions still need checking against the stopper linkage.
+        pollenShooter = new Shooter(hardwareMap, "sh1", 0.5, "stopperA", 0, 0.5);
+        intake = new Intake(hardwareMap, "in1", "intakeGate");
 
         // The hub sits on the right side, with its logo facing right and USB ports up.
         imu = hardwareMap.get(IMU.class, "imu");
@@ -55,6 +53,7 @@ public class MainTeleOp extends OpMode {
         telemetry.addData("Drive", "Left stick moves on the field, right stick turns");
         telemetry.addData("Heading", "Face field forward before Start; Back resets heading");
         telemetry.addData("Mechanisms", "A/B intake, X/Y stopper, right trigger shooter");
+        telemetry.addData("Intake gate", "Hold left bumper to open");
     }
 
     @Override
@@ -65,8 +64,8 @@ public class MainTeleOp extends OpMode {
 
     @Override
     public void loop() {
-        intake.update(gamepad1.a, gamepad1.b);
-        shooterStopper.update(gamepad1.x, gamepad1.y);
+        intake.update(gamepad1.a, gamepad1.b, gamepad1.left_bumper);
+        pollenShooter.updateGate(gamepad1.x, gamepad1.y);
         pollenShooter.update(gamepad1.right_trigger);
         telemetry.addData("Shooter target (ticks/s)", "%.0f",
                 pollenShooter.getTargetVelocityTicksPerSecond());
