@@ -14,11 +14,10 @@ public final class Shooter {
     public static volatile double KD = 0.0;
     public static volatile double KF = 1.0;
     private static final long DOUBLE_CLICK_NANOS = 350_000_000L;
-
-    private final DcMotorEx motor;
+    private final double openPosition = 0;
+    private final double closedPosition = .5;
+    private final DcMotorEx pollenShooter;
     private final Servo blocker;
-    private final double closedPosition;
-    private final double openPosition;
     private final double fullSpeed;
     private final double maxVelocityTicksPerSecond;
     private double targetVelocityTicksPerSecond;
@@ -30,26 +29,24 @@ public final class Shooter {
     private boolean previousBlockerButton;
     private long lastBlockerPressNanos;
 
-    public Shooter(HardwareMap hardwareMap, String motorName, double maxSpeedFraction,
-                   String blockerName, double closedPosition, double openPosition) {
+    public Shooter(HardwareMap hardwareMap, String pollenMotor, String nectarMotor, String blockerName, double maxSpeedFraction
+                  ) {
         if (!Double.isFinite(maxSpeedFraction) || maxSpeedFraction <= 0 || maxSpeedFraction > 1) {
             throw new IllegalArgumentException("Shooter max speed fraction must be greater than 0 and at most 1");
         }
-        motor = hardwareMap.get(DcMotorEx.class, motorName);
+        pollenShooter = hardwareMap.get(DcMotorEx.class, pollenMotor);
         // Speeds come from the motor model selected in the robot configuration.
-        fullSpeed = motor.getMotorType().getAchieveableMaxTicksPerSecond();
+        fullSpeed = pollenShooter.getMotorType().getAchieveableMaxTicksPerSecond();
         maxVelocityTicksPerSecond = fullSpeed * maxSpeedFraction;
         if (!Double.isFinite(maxVelocityTicksPerSecond) || maxVelocityTicksPerSecond <= 0) {
             throw new IllegalArgumentException("Shooter needs a motor configuration with a valid maximum speed");
         }
 
         // Read the encoder, but let our PID control setPower instead of the hub's PID.
-        motor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        pollenShooter.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         stop();
 
         blocker = hardwareMap.get(Servo.class, blockerName);
-        this.closedPosition = closedPosition;
-        this.openPosition = openPosition;
         blocker.setPosition(closedPosition);
     }
 
@@ -76,7 +73,7 @@ public final class Shooter {
         }
         double demand = Math.max(0, Math.min(1, trigger));
         targetVelocityTicksPerSecond = demand * maxVelocityTicksPerSecond;
-        double speed = motor.getVelocity() / fullSpeed;
+        double speed = pollenShooter.getVelocity() / fullSpeed;
         if (!Double.isFinite(speed)) {
             stop();
             return;
@@ -102,17 +99,17 @@ public final class Shooter {
             integral = nextIntegral;
         }
         outputPower = Math.max(0, Math.min(1, basePower + KI * integral));
-        motor.setPower(outputPower);
+        pollenShooter.setPower(outputPower);
         previousSpeed = speed;
         lastUpdateNanos = now;
     }
 
     public double getTargetRpm() {
-        return targetVelocityTicksPerSecond * 60.0 / motor.getMotorType().getTicksPerRev();
+        return targetVelocityTicksPerSecond * 60.0 / pollenShooter.getMotorType().getTicksPerRev();
     }
 
     public double getActualRpm() {
-        return motor.getVelocity() * 60.0 / motor.getMotorType().getTicksPerRev();
+        return pollenShooter.getVelocity() * 60.0 / pollenShooter.getMotorType().getTicksPerRev();
     }
 
     public double getOutputPower() {
@@ -125,6 +122,6 @@ public final class Shooter {
         integral = 0;
         previousSpeed = 0;
         lastUpdateNanos = 0;
-        motor.setPower(0);
+        pollenShooter.setPower(0);
     }
 }

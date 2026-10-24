@@ -1,7 +1,5 @@
 package org.firstinspires.ftc.teamcode.OpModes;
 
-import com.acmerobotics.dashboard.FtcDashboard;
-import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -25,15 +23,14 @@ public class MainTeleOp extends OpMode {
 
     @Override
     public void init() {
-        telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
         backLeft = hardwareMap.get(DcMotorEx.class, "bL");
         frontRight = hardwareMap.get(DcMotorEx.class, "fR");
         frontLeft = hardwareMap.get(DcMotorEx.class, "fL");
         backRight = hardwareMap.get(DcMotorEx.class, "bR");
         // Full trigger requests 50% of the configured motor's achievable speed.
-        // Blocker positions still need checking against its linkage.
-        pollenShooter = new Shooter(hardwareMap, "sh1", 0.5, "blocker", 0, 0.5);
-        intake = new Intake(hardwareMap, "in1", "intakeGate");
+        pollenShooter = new Shooter(hardwareMap, "pollenShooter","nectarShooter", "blocker",0.5);
+        intake = new Intake(hardwareMap,"pollenIntake", "nectarIntake", "rampServo");
+        // Check these positions against the stopper linkage before driving.
 
         // The hub sits on the right side, with its logo facing right and USB ports up.
         imu = hardwareMap.get(IMU.class, "imu");
@@ -55,8 +52,7 @@ public class MainTeleOp extends OpMode {
         }
         telemetry.addData("Drive", "Left stick moves on the field, right stick turns");
         telemetry.addData("Heading", "Face field forward before Start; Back resets heading");
-        telemetry.addData("Mechanisms", "A/B intake, RB hold/double-click blocker, right trigger shooter");
-        telemetry.addData("Intake gate", "Hold LB to open; double-click to latch/unlatch");
+        telemetry.addData("Mechanisms", "A/B intake, X/Y stopper, right trigger shooter");
     }
 
     @Override
@@ -67,14 +63,13 @@ public class MainTeleOp extends OpMode {
 
     @Override
     public void loop() {
-        intake.update(gamepad1.a, gamepad1.b, gamepad1.left_bumper);
-        pollenShooter.updateBlocker(gamepad1.right_bumper);
+        intake.intakePollen(gamepad1.a, gamepad1.b,gamepad1.x);
         pollenShooter.update(gamepad1.right_trigger);
-        telemetry.addData("Shooter target (RPM)",
+        telemetry.addData("Shooter target (rpm/s)", "%.0f",
                 pollenShooter.getTargetRpm());
-        telemetry.addData("Shooter actual (RPM)",
+        telemetry.addData("Shooter actual (rpm/s)", "%.0f",
                 pollenShooter.getActualRpm());
-        telemetry.addData("Shooter PID power", pollenShooter.getOutputPower());
+        telemetry.addData("Shooter PID power", "%.2f", pollenShooter.getOutputPower());
 
         double forward = -gamepad1.left_stick_y;
         double strafe = gamepad1.left_stick_x;
@@ -120,7 +115,6 @@ public class MainTeleOp extends OpMode {
         telemetry.addData("back Left", backLeft.getPower());
         telemetry.addData("front right", frontRight.getPower());
         telemetry.addData("back right", backRight.getPower());
-        telemetry.update();
 
     }
 
