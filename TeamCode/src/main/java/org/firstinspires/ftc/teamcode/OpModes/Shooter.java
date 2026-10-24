@@ -11,9 +11,10 @@ public final class Shooter {
     private static final double KI = 0.0;
     private static final double KD = 0.0;
     private static final double KF = 1.0;
+    private static final long DOUBLE_CLICK_NANOS = 350_000_000L;
 
     private final DcMotorEx motor;
-    private final Servo gate;
+    private final Servo blocker;
     private final double closedPosition;
     private final double openPosition;
     private final double fullSpeed;
@@ -23,9 +24,12 @@ public final class Shooter {
     private double integral;
     private double previousSpeed;
     private long lastUpdateNanos;
+    private boolean blockerLatchedOpen;
+    private boolean previousBlockerButton;
+    private long lastBlockerPressNanos;
 
     public Shooter(HardwareMap hardwareMap, String motorName, double maxSpeedFraction,
-                   String servoName, double closedPosition, double openPosition) {
+                   String blockerName, double closedPosition, double openPosition) {
         if (!Double.isFinite(maxSpeedFraction) || maxSpeedFraction <= 0 || maxSpeedFraction > 1) {
             throw new IllegalArgumentException("Shooter max speed fraction must be greater than 0 and at most 1");
         }
@@ -41,18 +45,26 @@ public final class Shooter {
         motor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         stop();
 
-        gate = hardwareMap.get(Servo.class, servoName);
+        blocker = hardwareMap.get(Servo.class, blockerName);
         this.closedPosition = closedPosition;
         this.openPosition = openPosition;
-        gate.setPosition(closedPosition);
+        blocker.setPosition(closedPosition);
     }
 
-    public void updateGate(boolean openButton, boolean closeButton) {
-        if (openButton) {
-            gate.setPosition(openPosition);
-        } else if (closeButton) {
-            gate.setPosition(closedPosition);
+    public void updateBlocker(boolean button) {
+        // Count a new press once, rather than counting every loop while held.
+        if (button && !previousBlockerButton) {
+            long now = System.nanoTime();
+            if (lastBlockerPressNanos != 0 && now - lastBlockerPressNanos <= DOUBLE_CLICK_NANOS) {
+                blockerLatchedOpen = !blockerLatchedOpen;
+                lastBlockerPressNanos = 0;
+            } else {
+                lastBlockerPressNanos = now;
+            }
         }
+        previousBlockerButton = button;
+        // A hold opens temporarily; a double-click keeps it open after release.
+        blocker.setPosition(button || blockerLatchedOpen ? openPosition : closedPosition);
     }
 
     public void update(double trigger) {

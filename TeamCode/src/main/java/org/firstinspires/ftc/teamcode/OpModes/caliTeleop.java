@@ -7,16 +7,16 @@ import com.qualcomm.robotcore.hardware.Servo;
 @TeleOp(name = "Calibration Teleop", group = "TeleOp")
 public class caliTeleop extends OpMode{
 
-    private Servo servo;
+    private Servo blocker;
 
     @Override
     public void init() {
-        servo = hardwareMap.get(Servo.class, "blocker");
+        blocker = hardwareMap.get(Servo.class, "blocker");
     }
     @Override
     public void loop(){
         if (gamepad1.a){
-            servo.setPosition(0);
+            blocker.setPosition(0);
         }
     }
 }
