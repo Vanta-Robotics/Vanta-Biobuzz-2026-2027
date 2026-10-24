@@ -6,10 +6,10 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 
 public final class Shooter {
     // Starting gains, not robot-tuned values. Error is a fraction of full motor speed.
-    private static final double KP = 0.2;
-    private static final double KI = 0.0;
-    private static final double KD = 0.0;
-    private static final double KF = 1.0;
+    private static double KP = 0.2;
+    private static double KI = 0.0;
+    private static double KD = 0.0;
+    private static double KF = 1.0;
 
     private final DcMotorEx motor;
     private final double fullSpeed;
